@@ -10,7 +10,10 @@ tag = raw_input("Please Enter your HashTag name: ")
 
 scope = ['https://spreadsheets.google.com/feeds']
 credentials = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
-client = gspread.authorize(credentials)
+headers = gspread.httpsession.HTTPSession(headers={'Connection': 'Keep-Alive'})  # increase session timeout
+client = gspread.Client(auth=credentials, http_session=headers)
+client.login()
+
 google_sheet_name = "hjelleset_mining"
 Tags_sheet = client.open(google_sheet_name).sheet1
 tag_lists = Tags_sheet.col_values(1)
@@ -19,18 +22,14 @@ if tag not in tag_lists:
     Tags_sheet.append_row([tag])
     new_sheet = client.open(google_sheet_name).add_worksheet(tag, 1, 6)
     new_sheet.insert_row(
-        ["ID", "Username", "Full Name", "Follower count",
+        ["ID", "Username", "Full Name", "Followers count",
          "Email Address", "LastMaxID"], 1)
     new_sheet.delete_row(2)
 
 sheet = client.open(google_sheet_name).worksheet(tag)
-
-headers = gspread.httpsession.HTTPSession(headers={'Connection': 'Keep-Alive'})  # increase session timeout
-gc = gspread.Client(auth=credentials, http_session=headers)
-gc.login()
-
 unique_ids = []
 unique_ids = sheet.col_values(1)
+
 """ google spreadsheet """
 
 
