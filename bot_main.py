@@ -75,7 +75,7 @@ def hash_tag_mining():
                 if info_json["status"] == "ok":
 
                     unique_ids.append(human_id)
-                    if 1 <= followers_count(info_json) <= 50000:
+                    if 1000 <= followers_count(info_json) <= 50000:
                         row = [human_id, user_name(info_json), full_name(info_json), followers_count(info_json),
                                email_address(info_json), max_id]
                         sheet.append_row(row)
