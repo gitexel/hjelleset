@@ -1,3 +1,4 @@
+import pickle
 import re
 import requests as req
 import gspread
@@ -5,6 +6,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 print "Welcome to Hjelleset Bot"
 tag = raw_input("Please Enter your HashTag name: ")
+print "Please Wait..."
+unique_id_list = []
 
 """ google spreadsheet """
 
@@ -25,16 +28,15 @@ if tag not in tag_lists:
         ["ID", "Username", "Full Name", "Followers count",
          "Email Address", "LastMaxID"], 1)
     new_sheet.delete_row(2)
+else:
+    """Local files - unique ids """
+    try:
+        with open("guests_uniqueIDs/" + tag + ".txt", "rb") as fp:  # Unpickling
+            unique_id_list = pickle.load(fp)
+    except e:
+        print e
 
 sheet = client.open(google_sheet_name).worksheet(tag)
-unique_ids = []
-unique_ids = sheet.col_values(1)
-
-""" google spreadsheet """
-
-"""Local files - unique ids """
-
-"""Local files - unique ids """
 
 
 def human_info(guest_user_id):
@@ -81,19 +83,22 @@ def hash_tag_mining():
 
                 human_id = item["owner"]["id"]
 
-                if human_id not in unique_ids:
+                if human_id not in unique_id_list:
 
                     info_json = human_info(human_id)
 
                     if info_json["status"] == "ok":
 
-                        unique_ids.append(human_id)
+                        unique_id_list.append(human_id)
                         if 1000 <= followers_count(info_json) <= 50000:
                             row = [human_id, user_name(info_json), full_name(info_json), followers_count(info_json),
                                    email_address(info_json), max_id]
+                            if credentials.access_token_expired:  # refreshes the token
+                                client.login()
                             sheet.append_row(row)
                             max_id = ''
                     else:
+                        print info_json["status"], "requsts"
                         break
 
             if tag_json["tag"]["media"]["count"] > 15 and tag_json["tag"]["media"]["page_info"]["has_next_page"]:
@@ -106,8 +111,11 @@ def hash_tag_mining():
             else:
                 has_next_page = False
 
-    except Exception, e:
-        traceback.print_exc()
+    except Exception as e:
+        print(e)
 
 
 hash_tag_mining()
+
+with open("guests_uniqueIDs/" + tag + ".txt", "wb") as fp:  # Pickling
+    pickle.dump(unique_id_list, fp)
