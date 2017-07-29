@@ -24,6 +24,11 @@ if tag not in tag_lists:
     new_sheet.delete_row(2)
 
 sheet = client.open(google_sheet_name).worksheet(tag)
+
+headers = gspread.httpsession.HTTPSession(headers={'Connection': 'Keep-Alive'})  # increase session timeout
+gc = gspread.Client(auth=credentials, http_session=headers)
+gc.login()
+
 unique_ids = []
 unique_ids = sheet.col_values(1)
 """ google spreadsheet """
