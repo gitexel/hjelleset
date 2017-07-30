@@ -6,7 +6,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 import time
 
 
-
 def refresh_token():
     if credentials.access_token_expired:  # refreshes the token
         client.login()
@@ -37,6 +36,13 @@ def user_name(human_info_json):
     return human_info_json["user"]["username"]
 
 
+def update_local_files(max_id):
+    with open("last_page_max_id/" + tag + "_max_id_list.txt", "wb") as fp:  # Pickling
+        pickle.dump(max_id, fp)
+    with open("guests_uniqueIDs/" + tag + ".txt", "wb") as fp:  # Pickling
+        pickle.dump(unique_id_list, fp)
+
+
 def hash_tag_mining():
     try:
 
@@ -58,8 +64,7 @@ def hash_tag_mining():
                     info_json = human_info(human_id)
                     if info_json["status"] == "ok":
                         unique_id_list.append(human_id)
-                        followers_num = followers_count(info_json)
-                        if followers_min <= followers_num and followers_num <= followers_max:
+                        if followers_min <= followers_count(info_json) <= followers_max:
                             row = [human_id, user_name(info_json), full_name(info_json), followers_count(info_json),
                                    email_address(info_json)]
                             refresh_token()
@@ -74,14 +79,18 @@ def hash_tag_mining():
                             count += 1
                         print "Sleep mode off,", "Waiting time:", (count * 10.0) / 60.0, "minute(s)"
 
-            if tag_json["tag"]["media"]["count"] > 15 and tag_json["tag"]["media"]["page_info"]["has_next_page"]:
-                max_id = tag_json["tag"]["media"]["page_info"]["end_cursor"]
+            update_local_files(max_id)
+            new_max_id = tag_json["tag"]["media"]["page_info"]["end_cursor"]
+
+            if new_max_id and tag_json["tag"]["media"]["page_info"]["has_next_page"]:
+
+                if max_id == new_max_id:  # if the loading have problem
+                    print "Finsished with problem in loading tags page"
+                    exit(3)
+                else:
+                    max_id = new_max_id
                 url_next_page = "https://www.instagram.com/explore/tags/" + tag + "/?__a=1" + "&max_id=" + str(max_id)
                 tag_json = req.get(url_next_page).json()
-                with open("last_page_max_id/" + tag + "_max_id_list.txt", "wb") as fp:  # Pickling
-                    pickle.dump(max_id, fp)
-                with open("guests_uniqueIDs/" + tag + ".txt", "wb") as fp:  # Pickling
-                    pickle.dump(unique_id_list, fp)
             else:
                 has_next_page = False
     except Exception as e:
