@@ -53,9 +53,7 @@ def hash_tag_mining():
         while has_next_page:
 
             for item in tag_json["tag"]["media"]["nodes"]:
-
                 human_id = item["owner"]["id"]
-
                 if human_id not in unique_id_list:
                     info_json = human_info(human_id)
                     if info_json["status"] == "ok":
