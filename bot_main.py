@@ -57,9 +57,11 @@ def hash_tag_mining():
         has_next_page = tag_json["tag"]["media"]["page_info"]["has_next_page"]
 
         while has_next_page:
-
-            for item in tag_json["tag"]["media"]["nodes"]:
-                human_id = item["owner"]["id"]
+            items = tag_json["tag"]["media"]["nodes"]
+            items_length = len(items)
+            item_num = 0
+            while item_num < items_length:
+                human_id = items[item_num]["owner"]["id"]
                 if human_id not in unique_id_list:
                     info_json = human_info(human_id)
                     if info_json["status"] == "ok":
@@ -69,16 +71,17 @@ def hash_tag_mining():
                                    email_address(info_json)]
                             refresh_token()
                             sheet.append_row(row)
+                        item_num += 1
                     else:
                         count = 0.0
-                        print info_json["status"], ":", info_json["message"]
-                        print "Waitng the server to response with ok message..."
+                        print info_json["message"]
                         print "Sleep mode on"
                         while (human_info(human_id)["status"] == "fail"):
                             time.sleep(10)
                             count += 1
                         print "Sleep mode off,", "Waiting time:", (count * 10.0) / 60.0, "minute(s)"
-
+                else:
+                    item_num += 1
             update_local_files(max_id)
             new_max_id = tag_json["tag"]["media"]["page_info"]["end_cursor"]
 
