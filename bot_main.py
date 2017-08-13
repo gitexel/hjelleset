@@ -132,7 +132,7 @@ def hash_tag_mining():
                 if human_id not in unique_id_list:
                     info_json = human_info(human_id)
                     if info_json["status"] == "ok":
-                        unique_id_list.append(human_id)
+                        unique_id_list.add(human_id)
                         if followers_min <= followers_count(info_json) <= followers_max:
                             row = [human_id, user_name(info_json), full_name(info_json), followers_count(info_json),
                                    email_address(info_json)]
@@ -143,7 +143,7 @@ def hash_tag_mining():
                         count = 0.0
                         print info_json["message"]
                         print "Sleep mode on"
-                        while (human_info(human_id)["status"] == "fail"):
+                        while (human_info(human_id)["status"] != "ok"):
                             time.sleep(10)
                             count += 1
                         print "Sleep mode off,", "Waiting time:", (count * 10.0) / 60.0, "minute(s)"
@@ -167,7 +167,7 @@ def hash_tag_mining():
         print e
 
 
-unique_id_list = []
+unique_id_list = set()
 Max_id_cursor = ""
 spreadsheet_name = ""
 spreadsheets_name_list = []
